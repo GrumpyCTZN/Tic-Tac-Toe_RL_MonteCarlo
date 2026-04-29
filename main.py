@@ -1,0 +1,141 @@
+#tic tac toe using RL
+
+#define the state
+    #just gonna be a 3x3 grid with two sets of values. ([list of coordinates of your symbol already placed], [list of cordinates of oponent symbol already placed])
+#define actions
+    #pick any coordinate other than the ones already in the state
+
+#define return(Gt) :
+    #if it suceedes, 0
+    #otherwise -1
+
+#Q_value -> which ever state/action pair has the least return, we use q_value+(r_value-q_value)*learning rate
+
+
+#Run it if the combination is not possible or win condition.
+
+#The win conditions will be as follows.
+#There must be a  formula to calculate this rather than having to list out all the possibilies on your own.
+
+#2 diagonal + 6 horizontal/vertical
+#for 2 diagonal : all cases simultaneously(x==y || x+y==2(0,1,2 system))
+#for 3 horizontal: y=0, y=1, y=2 (all simultaneously)
+#for 3 vertical: x=0, x=1, x=2 (all simultaneously)
+
+#need a way to check all the conditions all at once. Maybe check all the squares and see if 3 of any of these exist?
+#simultaneous need to check if win is possible.
+
+#training is going to be tough. Best possible for both players having perfect game is a draw. reward system needs to be updated.
+# -1 if loss, 0 if draw and 1 if win.
+# so here, playerCoordinates and AIcoordinates will be the two things a model will look at for state.
+#reward will be given accordingly. we have the code for knowing which state is draw win or loss
+# action will firstly be randomly picking an open spot.
+# we will refine this picking process with the help of value functions Q.
+
+# we will run two opposing models against one another for training 
+
+
+import tkinter as tk
+from tkinter import ttk
+state=["Player","AI"]
+currState=state[0]
+def game():
+    global allButtons
+    root =tk.Tk()
+    root.title("TicTacToe Game")
+    root.geometry("800x600")
+    root.columnconfigure(0, weight=1)
+    root.rowconfigure(0, weight=1)
+    
+    frame=ttk.Frame(root,padding="10")
+    frame.grid(row=0,column=0)
+    
+    #label= ttk.Label(frame,text="Player X's Turn")
+    #label.grid(row=0,column=0,pady=10)
+    #changePlayer=ttk.Button(frame,text="Change Player",width=30)
+    #changePlayer.config(command= lambda:handleSwitching())
+    #changePlayer.grid(row=5,column=1)
+    allButtons=[]*9
+    slabel=ttk.Label(frame,text=f"{currState}'s Turn",font=("Arial",20))
+    slabel.grid(row=7,column=1)
+    style=ttk.Style()
+    style.configure("Special.TButton",padding=(0,50),font=("Arial",20))
+    for i in range(3):
+        for j in range(3):
+            button = ttk.Button(frame,text="", width=10,style="Special.TButton")
+            button.config(command = lambda btn=button,i=i,j=j:[handlePress(btn,i,j,slabel,currState), gamelogic(slabel)])
+            button.grid(row=i,column=j,padx=10,pady=10)
+            allButtons.append(button)   
+    root.mainloop()
+
+def handleSwitching():
+    global currState
+    global state
+    if(currState==state[0]): currState=state[1]
+    elif(currState==state[1]): currState=state[0]
+    else: currState=""
+    return currState
+  
+
+PlayerCoordinates=[]
+AICoordinates=[]
+def handlePress (button,i,j,slabel,cstate):
+    global state
+   
+    if(cstate==state[0]):
+        button.config(text='X')
+        button.config(state="disabled")
+        PlayerCoordinates.append((i,j))
+    elif(cstate==state[1]):
+        button.config(text='O')
+        button.config(state="disabled")
+        AICoordinates.append((i,j))
+    cstate=handleSwitching()
+    slabel.config(text=f"{cstate}'s turn")
+    
+
+def endgame(message,slabel):
+    global allButtons
+    slabel.config(text=message)
+    for button in allButtons:
+        button.config(state="disabled")
+
+def gamelogic(slabel):
+    Pcount=[0]*8
+    AIcount = [0]*8
+    global state
+    for r,c in PlayerCoordinates:
+        if(r==c):
+            Pcount[0]+=1
+        if(r+c==2):
+            Pcount[1]+=1
+        for i in range(3):
+            if(r==i): Pcount[i+2]+=1
+        for i in range(3):
+            if(c==i): Pcount[i+5]+=1
+    for r,c in AICoordinates:
+        if(r==c):
+            AIcount[0]+=1
+        if(r+c==2):
+            AIcount[1]+=1
+        for i in range(3):
+            if(r==i): AIcount[i+2]+=1
+        for i in range(3):
+            if(c==i): AIcount[i+5]+=1
+    if any(score == 3 for score in Pcount):
+        endgame(f"{state[0]} Won",slabel)
+        return True
+
+    if any(score == 3 for score in AIcount):
+        endgame(f"{state[1]} Won",slabel)
+        return True
+
+    if(len(PlayerCoordinates)+len(AICoordinates)==9):
+        endgame("Draw",slabel)
+        
+    return False     
+        
+    
+    
+if __name__=="__main__":
+    game()
