@@ -37,6 +37,9 @@
 
 import tkinter as tk
 from tkinter import ttk
+import train as trn
+import state as st
+import time
 state=["Player","AI"]
 currState=state[0]
 def game():
@@ -50,22 +53,25 @@ def game():
     frame=ttk.Frame(root,padding="10")
     frame.grid(row=0,column=0)
     
-    #label= ttk.Label(frame,text="Player X's Turn")
-    #label.grid(row=0,column=0,pady=10)
+    label= ttk.Label(frame,text="Tic Tac Toe",font=("Arial",20))
+    label.grid(row=0,column=1,pady=10)
     #changePlayer=ttk.Button(frame,text="Change Player",width=30)
     #changePlayer.config(command= lambda:handleSwitching())
     #changePlayer.grid(row=5,column=1)
     allButtons=[]*9
     slabel=ttk.Label(frame,text=f"{currState}'s Turn",font=("Arial",20))
-    slabel.grid(row=7,column=1)
+    slabel.grid(row=4,column=1,pady=10)
     style=ttk.Style()
     style.configure("Special.TButton",padding=(0,50),font=("Arial",20))
+    
     for i in range(3):
         for j in range(3):
             button = ttk.Button(frame,text="", width=10,style="Special.TButton")
-            button.config(command = lambda btn=button,i=i,j=j:[handlePress(btn,i,j,slabel,currState), gamelogic(slabel)])
-            button.grid(row=i,column=j,padx=10,pady=10)
-            allButtons.append(button)   
+            button.config(command = lambda btn=button,i=i,j=j:handlePress(btn,i,j,slabel,currState,root))
+            button.grid(row=i+1,column=j,padx=10,pady=10)
+            allButtons.append(button) 
+            st.worldPositions.append([i,j])
+    #print(allPositions)
     root.mainloop()
 
 def handleSwitching():
@@ -75,23 +81,32 @@ def handleSwitching():
     elif(currState==state[1]): currState=state[0]
     else: currState=""
     return currState
-  
-
-PlayerCoordinates=[]
-AICoordinates=[]
-def handlePress (button,i,j,slabel,cstate):
+def handleAI(cstate,slabel):
     global state
-   
+    i,j=trn.Training1()
+    button=allButtons[i*3+j]
+    if(cstate==state[1]):
+        button.config(text='O')
+        button.config(state="disabled")
+        st.P2Coordinate.append([i,j])
+        time.sleep(0.5)
+    cstate=handleSwitching()
+    slabel.config(text=f"{cstate}'s turn")
+    
+
+def handlePress (button,i,j,slabel,cstate,root):
+    global state
+       
     if(cstate==state[0]):
         button.config(text='X')
         button.config(state="disabled")
-        PlayerCoordinates.append((i,j))
-    elif(cstate==state[1]):
-        button.config(text='O')
-        button.config(state="disabled")
-        AICoordinates.append((i,j))
+        st.P1Coordinate.append([i,j])
+        
     cstate=handleSwitching()
     slabel.config(text=f"{cstate}'s turn")
+    root.update()
+    moreMoves=gamelogic(slabel)
+    if not moreMoves:handleAI(cstate,slabel)
     
 
 def endgame(message,slabel):
@@ -104,7 +119,7 @@ def gamelogic(slabel):
     Pcount=[0]*8
     AIcount = [0]*8
     global state
-    for r,c in PlayerCoordinates:
+    for r,c in st.P1Coordinate:
         if(r==c):
             Pcount[0]+=1
         if(r+c==2):
@@ -113,7 +128,7 @@ def gamelogic(slabel):
             if(r==i): Pcount[i+2]+=1
         for i in range(3):
             if(c==i): Pcount[i+5]+=1
-    for r,c in AICoordinates:
+    for r,c in st.P2Coordinate:
         if(r==c):
             AIcount[0]+=1
         if(r+c==2):
@@ -130,12 +145,11 @@ def gamelogic(slabel):
         endgame(f"{state[1]} Won",slabel)
         return True
 
-    if(len(PlayerCoordinates)+len(AICoordinates)==9):
+    if(len(st.P1Coordinate)+len(st.P2Coordinate)==9):
         endgame("Draw",slabel)
+        return True
         
     return False     
         
-    
-    
 if __name__=="__main__":
     game()
