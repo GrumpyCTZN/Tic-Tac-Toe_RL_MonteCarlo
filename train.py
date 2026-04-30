@@ -1,45 +1,133 @@
 import random as rnd
 import state as st
-def Training1():
+import main
+import csv
+import os
+
+def Training1(valid):
     State1=st.P2Coordinate#[(1,1),(2,2)]
     State2=st.P1Coordinate#[(2,0),(0,0)]
-    #print(State2)
 
     allCordinates=st.worldPositions#[(0,0),(1,1),(2,2),(2,0),(1,2)]
     tempState=State1+State2
-    print(tempState)
-    actionList = allCordinates.copy()
-    #print(actionList)
+    actionList1 = allCordinates.copy()
     for cord in tempState:
-        if cord in actionList:
-            actionList.remove(cord)
-    #print(tempState)
-    #print(actionList)
+        if cord in actionList1:
+            actionList1.remove(cord)
+
+    
             
     #done the below to denote self and opponent; basically encoding
-    s1=State1.copy()
-    s2=State2.copy()
-    for i,(x,y) in enumerate(s1):
-        x+=10
-        y+=10
-        s1[i]=[x,y]
-    for i,(x,y) in enumerate(s2):
-        x+=20
-        y+=20
-        s2[i]=[x,y]
-    state=s1+s2
     #similarly action will be:
-    for i,(x,y) in enumerate(actionList):
-        x+=10
-        y+=10
-        actionList[i]=[x,y]
-    #print(actionList)
-    selection = rnd.choice(actionList)
-    selection[0]-=10
-    selection[1]-=10
-    #print(selection)
+    al=actionList1.copy()
+    for i,(x,y) in enumerate(al):
+        al[i]=encodeStateData(x,y,st.playerType[1])
+    #print(al)
+    
+    #selection
+    if(al):selectionEn = rnd.choice(al)
+    else: selectionEn=[10,10]
+    
+    #print(st.stateList)
+    #print(st.SequentialCoordinate)
+   
+    if(valid):
+        st.stateList1.append(list(st.SequentialCoordinate1))
+        st.returnValueList1.append(main.gamelogic(None,st.playerType[1],None))
+        st.action1.append(selectionEn)
+        #print(st.stateList)
+    #print(main.gamelogic(True,None))
+    learningRate=0.8
+    if( main.gamelogic(True,None,None)): 
+        
+        for i in range(len(st.returnValueList1)):
+            for j in range(i+1,len(st.returnValueList1)): 
+                st.returnValueList1[i]+=st.returnValueList1[j]*(learningRate)**(j-i)
+            st.sampleTrajectory1.append((st.stateList1[i],st.action1[i],st.returnValueList1[i]))
+        #saveEpisodeData("episodeDataCompiled")    
+        st.count+=1
+        print(f"Number 1:{st.sampleTrajectory1}")
+  
+    selection=decodeStateData(selectionEn[0],selectionEn[1],st.playerType[1])
     return selection
 
+def Training2(valid):
+    State1=st.P1Coordinate#[(1,1),(2,2)]
+    State2=st.P2Coordinate#[(2,0),(0,0)]
+
+    allCordinates=st.worldPositions#[(0,0),(1,1),(2,2),(2,0),(1,2)]
+    tempState=State1+State2
+    actionList2 = allCordinates.copy()
+    for cord in tempState:
+        if cord in actionList2:
+            actionList2.remove(cord)
+
+    
+            
+    #done the below to denote self and opponent; basically encoding
+    #similarly action will be:
+    al=actionList2.copy()
+    for i,(x,y) in enumerate(al):
+        al[i]=encodeStateData(x,y,st.playerType[1]) #always 1 for now
+    #print(al)
+    
+    #selection
+    if(al):selectionEn = rnd.choice(al)
+    else: selectionEn=[10,10]
+    
+    #print(st.stateList)
+    #print(st.SequentialCoordinate)
+   
+    if(valid):
+        st.stateList2.append(list(st.SequentialCoordinate2))
+        st.returnValueList2.append(main.gamelogic(None,st.playerType[0],None))
+        st.action2.append(selectionEn)
+        #print(st.stateList)
+    #print(main.gamelogic(True,None))
+    learningRate=0.8
+    if( main.gamelogic(True,None,None)): 
+        
+        for i in range(len(st.returnValueList2)):
+            for j in range(i+1,len(st.returnValueList2)): 
+                st.returnValueList2[i]+=st.returnValueList2[j]*(learningRate)**(j-i)
+            st.sampleTrajectory2.append((st.stateList2[i],st.action2[i],st.returnValueList2[i]))
+        #saveEpisodeData("episodeDataCompiled")    
+        st.count+=1
+        print(f"Number 2:{st.sampleTrajectory2}")
+  
+    selection=decodeStateData(selectionEn[0],selectionEn[1],st.playerType[1])
+    return selection
+
+
+def encodeStateData(i,j,k):
+    if k == st.playerType[0]: return i+20,j+20
+    elif k== st.playerType[1]: return i+10,j+10
+    else: return i,j
+def decodeStateData(i,j,k):
+    if k == st.playerType[0]: return i-20,j-20
+    elif k== st.playerType[1]: return i-10,j-10
+    else: return i,j
+'''
+def saveEpisodeData(filename):
+    file_exists=os.path.isfile(filename)
+    with open(filename,mode='a',newline='') as file:
+        writer = csv.writer(file)
+        if not file_exists:
+            writer.writerow(['State','Action','Return'])
+            
+        for entry in st.sampleTrajectory:
+            writer.writerow(entry)
+        writer.writerow([st.count,'-','-'])
+'''
+def clearBuffer():
+    st.sampleTrajectory1.clear()
+    st.returnValueList1.clear()
+    st.stateList1.clear()
+    st.action1.clear()
+    st.sampleTrajectory2.clear()
+    st.returnValueList2.clear()
+    st.stateList2.clear()
+    st.action2.clear()
 #now we do the picking portion and make a Q-value list too
 
 
