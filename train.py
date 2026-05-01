@@ -51,7 +51,7 @@ def Training1(valid):
     selection=decodeStateData(selectionEn[0],selectionEn[1],st.playerType[1])
     return selection
 
-def Training2(valid):
+def Training0(valid):
     State1=st.P1Coordinate#[(1,1),(2,2)]
     State2=st.P2Coordinate#[(2,0),(0,0)]
 
@@ -79,22 +79,22 @@ def Training2(valid):
     #print(st.SequentialCoordinate)
    
     if(valid):
-        st.stateList2.append(list(st.SequentialCoordinate2))
-        st.returnValueList2.append(main.gamelogic(None,st.playerType[0],None))
-        st.action2.append(selectionEn)
+        st.stateList0.append(list(st.SequentialCoordinate0))
+        st.returnValueList0.append(main.gamelogic(None,st.playerType[0],None))
+        st.action0.append(selectionEn)
         #print(st.stateList)
     #print(main.gamelogic(True,None))
     learningRate=0.8
     if( main.gamelogic(True,None,None)): 
         
-        for i in range(len(st.returnValueList2)):
-            for j in range(i+1,len(st.returnValueList2)): 
-                st.returnValueList2[i]+=st.returnValueList2[j]*(learningRate)**(j-i)
-            st.sampleTrajectory2.append((st.stateList2[i],st.action2[i],st.returnValueList2[i]))
+        for i in range(len(st.returnValueList0)):
+            for j in range(i+1,len(st.returnValueList0)): 
+                st.returnValueList0[i]+=st.returnValueList0[j]*(learningRate)**(j-i)
+            st.sampleTrajectory0.append((st.stateList0[i],st.action0[i],st.returnValueList0[i]))
         #saveEpisodeData("episodeDataCompiled")    
         st.count+=1
-        print(f"Number 2:{st.sampleTrajectory2}")
-  
+        print(f"Number 2:{st.sampleTrajectory0}")
+        print(st.count)
     selection=decodeStateData(selectionEn[0],selectionEn[1],st.playerType[1])
     return selection
 
@@ -124,10 +124,10 @@ def clearBuffer():
     st.returnValueList1.clear()
     st.stateList1.clear()
     st.action1.clear()
-    st.sampleTrajectory2.clear()
-    st.returnValueList2.clear()
-    st.stateList2.clear()
-    st.action2.clear()
+    st.sampleTrajectory0.clear()
+    st.returnValueList0.clear()
+    st.stateList0.clear()
+    st.action0.clear()
 #now we do the picking portion and make a Q-value list too
 
 

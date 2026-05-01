@@ -41,7 +41,7 @@ import train as trn
 import state as st
 import time
 state=st.playerType
-currState=state[1]
+currState=state[0]
 allButtons=[]*9
 def game():
     global allButtons
@@ -68,8 +68,8 @@ def game():
     for i in range(3):
         for j in range(3):
             button = ttk.Button(frame,text="", width=10,style="Special.TButton")
-            button.config(command = lambda btn=button,i=i,j=j:handlePress(btn,i,j,slabel,root))
-            #button.config(command = lambda btn=button:handlePress(btn,i,j,slabel,root))
+            button.config(command = lambda btn=button,i=i,j=j:handleFirst(btn,i,j,slabel,root))
+            #button.config(command = lambda btn=button:handleFirst(btn,i,j,slabel,root))
             button.grid(row=i+1,column=j,padx=10,pady=10)
             allButtons.append(button) 
             st.worldPositions.append([i,j])
@@ -84,16 +84,17 @@ def handleSwitching():
     elif(currState==state[1]): currState=state[0]
     else: currState=""
     return currState
-def handleAI(cstate,slabel,root):
+def handleSecond(cstate,slabel,root):
     global state
-    i,j=trn.Training1(True)
-    button=allButtons[i*3+j]
+    #Training 1 -> 
     if(cstate==state[1]):
+        i,j=trn.Training1(True)
+        button=allButtons[i*3+j]
         button.config(text='O')
         button.config(state="disabled")
         st.P2Coordinate.append([i,j])
         st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[1]))
-        st.SequentialCoordinate2.append(trn.encodeStateData(i,j,state[0]))
+        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[0]))
         time.sleep(1)
         
     elif(cstate==state[0]):
@@ -101,7 +102,7 @@ def handleAI(cstate,slabel,root):
         button.config(state="disabled")
         st.P1Coordinate.append([i,j])
         st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[0]))
-        st.SequentialCoordinate2.append(trn.encodeStateData(i,j,state[1]))
+        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[1]))
         time.sleep(1)
     cstate=handleSwitching()
     slabel.config(text=f"{cstate}'s turn")
@@ -113,7 +114,7 @@ def handleAI(cstate,slabel,root):
         time.sleep(2)
         resetBoard()
 
-def handlePress (button,i,j,slabel,root):
+def handleFirst (button,i,j,slabel,root):
         global state
         global currState
         #print("test")
@@ -124,28 +125,28 @@ def handlePress (button,i,j,slabel,root):
             button.config(state="disabled")
             st.P1Coordinate.append([i,j])
             st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[0]))
-            st.SequentialCoordinate2.append(trn.encodeStateData(i,j,state[1]))
+            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[1]))
         elif(cstate==state[1]):
             button.config(text='O')
             button.config(state="disabled")
             st.P1Coordinate.append([i,j])
             st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[1]))
-            st.SequentialCoordinate2.append(trn.encodeStateData(i,j,state[0]))
+            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[0]))
             
         cstate=handleSwitching()
         slabel.config(text=f"{cstate}'s turn")
         root.update()
         moreMoves=gamelogic(slabel,None,root)
-        if not moreMoves:handleAI(cstate,slabel,root)
+        if not moreMoves:handleSecond(cstate,slabel,root)
         
         else:
-            trn.Training2(False)
+            trn.Training0(False)
             time.sleep(2)
             resetBoard()
 
 def randomFunction():
     global allButtons
-    i,j=trn.Training2(True)
+    i,j=trn.Training0(True)
     allButtons[i*3+j].invoke()
 
 def endgame(message,slabel,root):
@@ -220,7 +221,7 @@ def resetBoard():
     st.P1Coordinate.clear()
     st.P2Coordinate.clear()
     st.SequentialCoordinate1.clear()
-    st.SequentialCoordinate2.clear()
+    st.SequentialCoordinate0.clear()
     trn.clearBuffer()
     currState=state[0]
     slabel.config(text=f"{currState}'s Turn")
