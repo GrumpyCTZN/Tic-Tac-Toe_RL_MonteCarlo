@@ -1,9 +1,9 @@
+P0Coordinate=[]
 P1Coordinate=[]
-P2Coordinate=[]
 SequentialCoordinate1=[]
 SequentialCoordinate0=[]
 worldPositions=[]
-playerType=["Player","AI"]
+playerType=["Agent 1","Agent 2"]
 
 sampleTrajectory1=[]
 returnValueList1=[]

@@ -43,6 +43,9 @@ import time
 state=st.playerType
 currState=state[0]
 allButtons=[]*9
+totalSimulations=200
+moveDelay=0.0
+episodeDelay=0.0
 def game():
     global allButtons
     global slabel
@@ -57,9 +60,6 @@ def game():
     
     label= ttk.Label(frame,text="Tic Tac Toe",font=("Arial",20))
     label.grid(row=0,column=1,pady=10)
-    #changePlayer=ttk.Button(frame,text="Change Player",width=30)
-    #changePlayer.config(command= lambda:handleSwitching())
-    #changePlayer.grid(row=5,column=1)
     slabel=ttk.Label(frame,text=f"{currState}'s Turn",font=("Arial",20))
     slabel.grid(row=4,column=1,pady=10)
     style=ttk.Style()
@@ -69,12 +69,10 @@ def game():
         for j in range(3):
             button = ttk.Button(frame,text="", width=10,style="Special.TButton")
             button.config(command = lambda btn=button,i=i,j=j:handleFirst(btn,i,j,slabel,root))
-            #button.config(command = lambda btn=button:handleFirst(btn,i,j,slabel,root))
             button.grid(row=i+1,column=j,padx=10,pady=10)
             allButtons.append(button) 
             st.worldPositions.append([i,j])
-    randomFunction()
-    #print(allPositions)
+    randomFunction(root)
     root.mainloop()
      
 def handleSwitching():
@@ -84,70 +82,93 @@ def handleSwitching():
     elif(currState==state[1]): currState=state[0]
     else: currState=""
     return currState
-def handleSecond(cstate,slabel,root):
+
+def handleSecond(slabel,root):
     global state
+    global currState
+    global moveDelay
     #Training 1 -> 
-    if(cstate==state[1]):
+    if(currState==state[1]):
         i,j=trn.Training1(True)
         button=allButtons[i*3+j]
         button.config(text='O')
         button.config(state="disabled")
-        st.P2Coordinate.append([i,j])
-        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[1]))
-        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[0]))
-        time.sleep(1)
+        st.P1Coordinate.append([i,j])
+        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=True))
+        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=False))
+        time.sleep(moveDelay)
         
-    elif(cstate==state[0]):
+    elif(currState==state[0]):
+        i,j=trn.Training0(True)
+        button=allButtons[i*3+j]
         button.config(text='X')
         button.config(state="disabled")
-        st.P1Coordinate.append([i,j])
-        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[0]))
-        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[1]))
-        time.sleep(1)
-    cstate=handleSwitching()
-    slabel.config(text=f"{cstate}'s turn")
+        st.P0Coordinate.append([i,j])
+        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=False))
+        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=True))
+        time.sleep(moveDelay)
+    handleSwitching
+    slabel.config(text=f"{currState}'s turn")
     root.update()
-    time.sleep(1)
-    randomFunction()
-    if(gamelogic(slabel,None,root)): 
+    time.sleep(moveDelay)
+    
+    
+    moreMoves=gamelogic(slabel,None,root)
+    if not moreMoves:randomFunction(root)  
+    else:
+        trn.Training0(False)
         trn.Training1(False)
+        st.count+=1
         time.sleep(2)
-        resetBoard()
+        resetBoard(root)
 
 def handleFirst (button,i,j,slabel,root):
         global state
         global currState
-        #print("test")
-        cstate=currState
-        slabel.config(text=f"{cstate}'s turn")
-        if(cstate==state[0]):
+        global episodeDelay
+        slabel.config(text=f"{currState}'s turn")
+        if(currState==state[0]):
             button.config(text='X')
             button.config(state="disabled")
-            st.P1Coordinate.append([i,j])
-            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[0]))
-            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[1]))
-        elif(cstate==state[1]):
+            st.P0Coordinate.append([i,j])
+            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=False))
+            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=True))
+        elif(currState==state[1]):
             button.config(text='O')
             button.config(state="disabled")
             st.P1Coordinate.append([i,j])
-            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,state[1]))
-            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,state[0]))
+            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=True))
+            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=False))
             
-        cstate=handleSwitching()
-        slabel.config(text=f"{cstate}'s turn")
+        handleSwitching()
+        slabel.config(text=f"{currState}'s turn")
         root.update()
         moreMoves=gamelogic(slabel,None,root)
-        if not moreMoves:handleSecond(cstate,slabel,root)
+        if not moreMoves:handleSecond(slabel,root)
         
         else:
             trn.Training0(False)
-            time.sleep(2)
-            resetBoard()
+            trn.Training1(False)
+            st.count+=1
+            time.sleep(episodeDelay)
+            resetBoard(root)
 
-def randomFunction():
+def randomFunction(root):
     global allButtons
-    i,j=trn.Training0(True)
-    allButtons[i*3+j].invoke()
+    global currState
+    global totalSimulations
+    global moveDelay
+    if st.count > totalSimulations:
+        print("Done!")
+        root.destroy()
+    if(st.count % 2 == 0):
+        currState=state[0]
+        i,j=trn.Training0(True)
+    else:
+        currState=state[1]
+        i,j=trn.Training1(True)
+    root.after(int(moveDelay*1000), lambda: allButtons[i*3+j].invoke())
+    
 
 def endgame(message,slabel,root):
     global allButtons
@@ -157,9 +178,18 @@ def endgame(message,slabel,root):
     root.update()
     
 def gamelogic(slabel,player,root):
+    P0count=[0]*8
     P1count=[0]*8
-    P2count=[0]*8
     global state
+    for r,c in st.P0Coordinate:
+        if(r==c):
+            P0count[0]+=1
+        if(r+c==2):
+            P0count[1]+=1
+        for i in range(3):
+            if(r==i): P0count[i+2]+=1
+        for i in range(3):
+            if(c==i): P0count[i+5]+=1
     for r,c in st.P1Coordinate:
         if(r==c):
             P1count[0]+=1
@@ -169,16 +199,7 @@ def gamelogic(slabel,player,root):
             if(r==i): P1count[i+2]+=1
         for i in range(3):
             if(c==i): P1count[i+5]+=1
-    for r,c in st.P2Coordinate:
-        if(r==c):
-            P2count[0]+=1
-        if(r+c==2):
-            P2count[1]+=1
-        for i in range(3):
-            if(r==i): P2count[i+2]+=1
-        for i in range(3):
-            if(c==i): P2count[i+5]+=1
-    if any(score == 3 for score in P1count):
+    if any(score == 3 for score in P0count):
         if(slabel):
             if(type(slabel)!=bool):
                 endgame(f"{state[0]} Won",slabel,root)
@@ -189,7 +210,7 @@ def gamelogic(slabel,player,root):
             return 1
         
 
-    if any(score == 3 for score in P2count):
+    if any(score == 3 for score in P1count):
         if(slabel):
             if(type(slabel)!=bool):
                 endgame(f"{state[1]} Won",slabel,root)
@@ -199,33 +220,31 @@ def gamelogic(slabel,player,root):
         elif player == state[1]:
             return 1
         
-    if(len(st.P1Coordinate)+len(st.P2Coordinate)==9):
+    if(len(st.P0Coordinate)+len(st.P1Coordinate)==9):
         if(slabel):
             if(type(slabel)!=bool):
                 endgame("Draw",slabel,root)
             return True
-        if player:
+        if player==state[0] or player==state[1]:
             return 0
         
     if slabel: return False  
     else: return -1   
  
-def resetBoard():
+def resetBoard(root):
     global allButtons
     global currState
     global slabel
-    #print("test")
     for button in allButtons:
         button.config(state="normal",text="")
         
+    st.P0Coordinate.clear()
     st.P1Coordinate.clear()
-    st.P2Coordinate.clear()
     st.SequentialCoordinate1.clear()
     st.SequentialCoordinate0.clear()
     trn.clearBuffer()
-    currState=state[0]
     slabel.config(text=f"{currState}'s Turn")
-    randomFunction()
+    randomFunction(root)
     
         
     return False
