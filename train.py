@@ -5,13 +5,18 @@ import csv
 import math
 import json
 
-decayRate=0.001
-epMin=0.1
+decayRate=0.0005
+epMin=0.05
 epMax=1.0
-epsilon=epMin+(epMax-epMin)*math.exp(-1*st.count*decayRate)
-
+constant=0.9
+learningRate=0.1
 def Training1(valid): #Always 'O'
-    global epsilon
+    global decayRate
+    global epMin
+    global epMax
+    global constant
+    global learningRate
+    epsilon=epMin+(epMax-epMin)*math.exp(-1*st.count*decayRate)
     State1=st.P1Coordinate#[(1,1),(2,2)]
     State2=st.P0Coordinate#[(2,0),(0,0)]
 
@@ -26,38 +31,36 @@ def Training1(valid): #Always 'O'
             
     #done the below to denote self and opponent; basically encoding
     #similarly action will be:
-    al=actionList1.copy()
-    for i,(x,y) in enumerate(al):
-        al[i]=encodeStateData(x,y,player=True)
+    
     
     #selection
     
     
     st.returnValueList1.append(main.gamelogic(None,st.playerType[1],None))
     if(valid):
-        st.stateList1.append(list(st.SequentialCoordinate1))
-        if(al):
+        st.stateList1.append(list(st.boardState1))
+        if tuple(st.boardState1) not in st.Q_table1:
+            st.Q_table1[tuple(st.boardState1)]=[0.0]*9
+        if(actionList1):
             if rnd.random()<epsilon:
-                selectionEn = rnd.choice(al)#encoded selection
+                selection = rnd.choice(actionList1)#encoded selection
             else:
                 stateKey=tuple(st.stateList1[-1])
+                if stateKey not in st.Q_table1:
+                    st.Q_table1[stateKey]=[0.0]*9
                 qValueList=st.Q_table1[stateKey]
-                legalQVals=[(qValueList[encodeIndex(i,j)],[i,j]) for i,j in al]
-                selectionEn=decodeIndex(max(legalQVals,key=lambda x:x[0])[1])
-        else: selectionEn=[10,10] #default selection, not used at all
-        st.action1.append(selectionEn)
-    else: selectionEn=[10,10]
-    constant=0.8
-    learningRate=0.1
+                legalQVals=[(qValueList[encodeIndex(i,j)],[i,j]) for i,j in actionList1]
+                selection=max(legalQVals,key=lambda x:x[0])[1]
+        else: selection=[0,0] #default selection, not used at all
+        st.action1.append(selection)
+    else: selection=[0,0]
     if( main.gamelogic(True,None,None)): 
         st.returnValueList1.pop(0)
         for i in range(len(st.stateList1)):
             for j in range(i+1,len(st.returnValueList1)): 
                 st.returnValueList1[i]+=st.returnValueList1[j]*(constant)**(j-i)
             st.sampleTrajectory1.append((st.stateList1[i],st.action1[i],st.returnValueList1[i]))
-            if tuple(st.stateList1[i]) not in st.Q_table1:
-                st.Q_table1[tuple(st.stateList1[i])]=[0]*9
-            x,y=decodeStateData(st.action1[i][0],st.action1[i][1],player=True)
+            x,y=st.action1[i][0],st.action1[i][1]
             val=st.Q_table1[tuple(st.stateList1[i])][x*3+y]
             st.Q_table1[tuple(st.stateList1[i])][x*3+y]=val+(st.returnValueList1[i]-val)*learningRate
                 
@@ -65,11 +68,15 @@ def Training1(valid): #Always 'O'
         #saveEpisodeData("episodeDataCompiledAI1.csv",1)    
         if st.count==st.totalSimulations:
             saveQTable(st.Q_table1,"Agent2Qtable.json")
-    selection=decodeStateData(selectionEn[0],selectionEn[1],player=True)
     return selection
 
 def Training0(valid):#Always 'X'
-    global epsilon
+    global decayRate
+    global epMin
+    global epMax
+    global constant
+    global learningRate
+    epsilon=epMin+(epMax-epMin)*math.exp(-1*st.count*decayRate)
     State1=st.P0Coordinate#[(1,1),(2,2)]
     State2=st.P1Coordinate#[(2,0),(0,0)]
 
@@ -79,42 +86,34 @@ def Training0(valid):#Always 'X'
     for cord in tempState:
         if cord in actionList0:
             actionList0.remove(cord)
-
-    
-            
-    #done the below to denote self and opponent; basically encoding
-    #similarly action will be:
-    al=actionList0.copy()
-    for i,(x,y) in enumerate(al):
-        al[i]=encodeStateData(x,y,player=True) #always 1 for now
     
     
     
     st.returnValueList0.append(main.gamelogic(None,st.playerType[0],None)) #its recording return values with offset of 1
     if(valid):
-        st.stateList0.append(list(st.SequentialCoordinate0))
-        if(al):
+        st.stateList0.append(list(st.boardState0))
+        if tuple(st.boardState0) not in st.Q_table0:
+            st.Q_table0[tuple(st.boardState0)]=[0.0]*9
+        if(actionList0):
             if rnd.random()<epsilon:
-                selectionEn = rnd.choice(al)#encoded selection
+                selection = rnd.choice(actionList0)#encoded selection
             else:
                 stateKey=tuple(st.stateList0[-1])
+                if stateKey not in st.Q_table0:
+                    st.Q_table0[stateKey]=[0.0]*9
                 qValueList=st.Q_table0[stateKey]
-                legalQVals=[(qValueList[encodeIndex(i,j)],[i,j]) for i,j in al]
-                selectionEn=decodeIndex(max(legalQVals,key=lambda x:x[0])[1])
-        else: selectionEn=[10,10] #default selection, not used at all
-        st.action0.append(selectionEn)
-    else: selectionEn=[10,10]
-    constant=0.9
-    learningRate=0.05
+                legalQVals=[(qValueList[encodeIndex(i,j)],[i,j]) for i,j in actionList0]
+                selection=max(legalQVals,key=lambda x:x[0])[1]
+        else: selection=[0,0] #default selection, not used at all
+        st.action0.append(selection)
+    else: selection=[0,0]
     if( main.gamelogic(True,None,None)): 
         st.returnValueList0.pop(0)#fixed that offset here
         for i in range(len(st.returnValueList0)):
             for j in range(i+1,len(st.returnValueList0)): 
                 st.returnValueList0[i]+=st.returnValueList0[j]*(constant)**(j-i)
             st.sampleTrajectory0.append((st.stateList0[i],st.action0[i],st.returnValueList0[i]))
-            if tuple(st.stateList0[i]) not in st.Q_table0:
-                st.Q_table0[tuple(st.stateList0[i])]=[0]*9
-            x,y=decodeStateData(st.action0[i][0],st.action0[i][1],player=True)
+            x,y=st.action0[i][0],st.action0[i][1]
             val=st.Q_table0[tuple(st.stateList0[i])][x*3+y]
             st.Q_table0[tuple(st.stateList0[i])][x*3+y]=val+(st.returnValueList0[i]-val)*learningRate
                 
@@ -122,18 +121,8 @@ def Training0(valid):#Always 'X'
         #saveEpisodeData("episodeDataCompiledAI0.csv",0) 
         if st.count==st.totalSimulations:
             saveQTable(st.Q_table0,"Agent1Qtable.json")   
-    selection=decodeStateData(selectionEn[0],selectionEn[1],player=True)
     return selection
 
-
-def encodeStateData(i,j,player):
-    if player == False: return i+20,j+20
-    elif player== True: return i+10,j+10
-    else: return i,j
-def decodeStateData(i,j,player):
-    if player == False: return i-20,j-20
-    elif player== True: return i-10,j-10
-    else: return i,j
 def clearBuffer():
     st.sampleTrajectory1.clear()
     st.returnValueList1.clear()
@@ -168,13 +157,9 @@ def saveQTable(table,filename):
 def decodeIndex(index):
     i=int(index/3)
     j=int(index%3)
-    i+=10
-    j+=10
     return i,j
 
 def encodeIndex(x,y):
-    x-=10
-    y-=10
     return x*3+y
 #now we do the picking portion and make a Q-value list too
 
