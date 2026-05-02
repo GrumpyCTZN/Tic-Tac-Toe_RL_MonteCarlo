@@ -1,7 +1,7 @@
 P0Coordinate=[]
 P1Coordinate=[]
-SequentialCoordinate1=[]
-SequentialCoordinate0=[]
+boardState0=[0]*9
+boardState1=[0]*9
 worldPositions=[]
 playerType=["Agent 1","Agent 2"]
 
