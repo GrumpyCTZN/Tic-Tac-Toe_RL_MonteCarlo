@@ -1,4 +1,5 @@
 __pycache__/
 *.csv
 *.json
+Training Data/
 !QTable.json
