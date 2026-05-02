@@ -9,11 +9,13 @@ sampleTrajectory1=[]
 returnValueList1=[]
 stateList1=[]
 action1=[]
+Q_table1={}
 
 sampleTrajectory0=[]
 returnValueList0=[]
 stateList0=[]
 action0=[]
-count=0
+Q_table0={}
 
-table={}
+count=0
+totalSimulations=10000

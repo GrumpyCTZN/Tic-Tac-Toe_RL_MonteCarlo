@@ -43,9 +43,8 @@ import time
 state=st.playerType
 currState=state[0]
 allButtons=[]*9
-totalSimulations=200
-moveDelay=0.0
-episodeDelay=0.0
+moveDelay=0
+episodeDelay=0
 def game():
     global allButtons
     global slabel
@@ -72,7 +71,7 @@ def game():
             button.grid(row=i+1,column=j,padx=10,pady=10)
             allButtons.append(button) 
             st.worldPositions.append([i,j])
-    randomFunction(root)
+    pressButton(root)
     root.mainloop()
      
 def handleSwitching():
@@ -107,19 +106,19 @@ def handleSecond(slabel,root):
         st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=False))
         st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=True))
         time.sleep(moveDelay)
-    handleSwitching
+    handleSwitching()
     slabel.config(text=f"{currState}'s turn")
     root.update()
-    time.sleep(moveDelay)
     
     
     moreMoves=gamelogic(slabel,None,root)
-    if not moreMoves:randomFunction(root)  
+    if not moreMoves:pressButton(root)  
     else:
         trn.Training0(False)
         trn.Training1(False)
         st.count+=1
-        time.sleep(2)
+        if(st.count%1000 ==-0): print(st.count)
+        time.sleep(episodeDelay)
         resetBoard(root)
 
 def handleFirst (button,i,j,slabel,root):
@@ -150,17 +149,17 @@ def handleFirst (button,i,j,slabel,root):
             trn.Training0(False)
             trn.Training1(False)
             st.count+=1
+            if(st.count%1000 ==-0): print(st.count)
             time.sleep(episodeDelay)
             resetBoard(root)
 
-def randomFunction(root):
+def pressButton(root):
     global allButtons
     global currState
-    global totalSimulations
     global moveDelay
-    if st.count > totalSimulations:
+    if st.count > st.totalSimulations:
         print("Done!")
-        root.destroy()
+        return
     if(st.count % 2 == 0):
         currState=state[0]
         i,j=trn.Training0(True)
@@ -226,7 +225,7 @@ def gamelogic(slabel,player,root):
                 endgame("Draw",slabel,root)
             return True
         if player==state[0] or player==state[1]:
-            return 0
+            return 0.5
         
     if slabel: return False  
     else: return -1   
@@ -244,7 +243,7 @@ def resetBoard(root):
     st.SequentialCoordinate0.clear()
     trn.clearBuffer()
     slabel.config(text=f"{currState}'s Turn")
-    randomFunction(root)
+    pressButton(root)
     
         
     return False
