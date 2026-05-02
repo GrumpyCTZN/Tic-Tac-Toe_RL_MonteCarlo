@@ -95,7 +95,7 @@ def handleSecond(slabel,root):
         st.P1Coordinate.append([i,j])
         st.boardState0[trn.encodeIndex(i,j)]=2
         st.boardState1[trn.encodeIndex(i,j)]=1
-        time.sleep(moveDelay)
+        time.sleep(moveDelay if st.count<=st.totalSimulations else 1)
         
     elif(currState==state[0]):
         i,j=trn.Training0(True)
@@ -106,7 +106,7 @@ def handleSecond(slabel,root):
         st.boardState0[trn.encodeIndex(i,j)]=1
         st.boardState1[trn.encodeIndex(i,j)]=2
        
-        time.sleep(moveDelay)
+        time.sleep(moveDelay if st.count<=st.totalSimulations else 1)
     handleSwitching()
     slabel.config(text=f"{currState}'s turn")
     root.update()
@@ -119,7 +119,7 @@ def handleSecond(slabel,root):
         trn.Training1(False)
         st.count+=1
         if(st.count%1000 ==-0): print(st.count)
-        time.sleep(episodeDelay)
+        time.sleep(episodeDelay if st.count<=st.totalSimulations else 1)
         resetBoard(root)
 
 def handleFirst (button,i,j,slabel,root):
@@ -151,7 +151,7 @@ def handleFirst (button,i,j,slabel,root):
             trn.Training1(False)
             st.count+=1
             if(st.count%1000 ==-0): print(st.count)
-            time.sleep(episodeDelay)
+            time.sleep(episodeDelay if st.count<=st.totalSimulations else 1)
             resetBoard(root)
 
 def pressButton(root):
@@ -207,7 +207,7 @@ def gamelogic(slabel,player,root):
         if player == state[1]:
             return -3
         elif player == state[0]:
-            return 1
+            return 3
         
 
     if any(score == 3 for score in P1count):
@@ -218,7 +218,7 @@ def gamelogic(slabel,player,root):
         if player == state[0]:
             return -3
         elif player == state[1]:
-            return 1
+            return 3
         
     if(len(st.P0Coordinate)+len(st.P1Coordinate)==9):
         if(slabel):

@@ -5,9 +5,9 @@ import csv
 import math
 import json
 
-decayRate=0.0005
-epMin=0.05
-epMax=1.0
+epMin=0.1
+epMax=0.2
+decayRate=-math.log(epMin)/st.totalSimulations
 constant=0.9
 learningRate=0.1
 def Training1(valid): #Always 'O'
@@ -56,7 +56,7 @@ def Training1(valid): #Always 'O'
     else: selection=[0,0]
     if( main.gamelogic(True,None,None)): 
         st.returnValueList1.pop(0)
-        for i in range(len(st.stateList1)):
+        for i in range(len(st.returnValueList1)):
             for j in range(i+1,len(st.returnValueList1)): 
                 st.returnValueList1[i]+=st.returnValueList1[j]*(constant)**(j-i)
             st.sampleTrajectory1.append((st.stateList1[i],st.action1[i],st.returnValueList1[i]))
@@ -154,6 +154,27 @@ def saveQTable(table,filename):
     with open(filename,'w') as file:
         json.dump(trasnformedData,file,indent=4)
     print(f"Q-Table saved to {filename}")
+    
+    
+def loadQTable(filename):
+    try:
+        with open(filename,'r') as file:
+            strQtable=json.load(file)
+            
+        qTable={eval(k): v for k,v in strQtable.items()}
+        
+        print(f"Sucessfully loaded{len(qTable)} states from {filename}")
+        return qTable
+    except FileNotFoundError:
+        print(f"File {filename} not found. Starting withh an empty Q-table.")
+        return {}
+    except Exception as e:
+        print(f"Error loading Q-Table: {e}")
+        return {}
+    
+st.Q_table0=loadQTable("Agent1Qtable.json")
+st.Q_table1=loadQTable("Agent2Qtable.json")
+
 def decodeIndex(index):
     i=int(index/3)
     j=int(index%3)
