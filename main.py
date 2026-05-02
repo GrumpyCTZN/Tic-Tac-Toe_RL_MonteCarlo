@@ -93,8 +93,8 @@ def handleSecond(slabel,root):
         button.config(text='O')
         button.config(state="disabled")
         st.P1Coordinate.append([i,j])
-        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=True))
-        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=False))
+        st.boardState0[trn.encodeIndex(i,j)]=2
+        st.boardState1[trn.encodeIndex(i,j)]=1
         time.sleep(moveDelay)
         
     elif(currState==state[0]):
@@ -103,8 +103,9 @@ def handleSecond(slabel,root):
         button.config(text='X')
         button.config(state="disabled")
         st.P0Coordinate.append([i,j])
-        st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=False))
-        st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=True))
+        st.boardState0[trn.encodeIndex(i,j)]=1
+        st.boardState1[trn.encodeIndex(i,j)]=2
+       
         time.sleep(moveDelay)
     handleSwitching()
     slabel.config(text=f"{currState}'s turn")
@@ -130,14 +131,14 @@ def handleFirst (button,i,j,slabel,root):
             button.config(text='X')
             button.config(state="disabled")
             st.P0Coordinate.append([i,j])
-            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=False))
-            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=True))
+            st.boardState0[trn.encodeIndex(i,j)]=1
+            st.boardState1[trn.encodeIndex(i,j)]=2
         elif(currState==state[1]):
             button.config(text='O')
             button.config(state="disabled")
             st.P1Coordinate.append([i,j])
-            st.SequentialCoordinate1.append(trn.encodeStateData(i,j,player=True))
-            st.SequentialCoordinate0.append(trn.encodeStateData(i,j,player=False))
+            st.boardState0[trn.encodeIndex(i,j)]=2
+            st.boardState1[trn.encodeIndex(i,j)]=1
             
         handleSwitching()
         slabel.config(text=f"{currState}'s turn")
@@ -204,7 +205,7 @@ def gamelogic(slabel,player,root):
                 endgame(f"{state[0]} Won",slabel,root)
             return True
         if player == state[1]:
-            return -1
+            return -3
         elif player == state[0]:
             return 1
         
@@ -215,7 +216,7 @@ def gamelogic(slabel,player,root):
                 endgame(f"{state[1]} Won",slabel,root)
             return True
         if player == state[0]:
-            return -1
+            return -3
         elif player == state[1]:
             return 1
         
@@ -228,7 +229,7 @@ def gamelogic(slabel,player,root):
             return 0.5
         
     if slabel: return False  
-    else: return -1   
+    else: return 0   
  
 def resetBoard(root):
     global allButtons
@@ -239,8 +240,8 @@ def resetBoard(root):
         
     st.P0Coordinate.clear()
     st.P1Coordinate.clear()
-    st.SequentialCoordinate1.clear()
-    st.SequentialCoordinate0.clear()
+    st.boardState0=[0]*9
+    st.boardState1=[0]*9
     trn.clearBuffer()
     slabel.config(text=f"{currState}'s Turn")
     pressButton(root)
